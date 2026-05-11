@@ -1,29 +1,26 @@
 {
   "donation_wallet": "Hrhun4a3ayjbLVgDYYSExLw3BU5Zb5vjXPZsoTZQHxi1",
+  "helius_api_key": "472d5614-8082-4d1b-a58e-02b0b2dd20c3",
+  "jsonbin_master_key": "$2a$10$r8HQY3xopbqSl0WwjMsr4Ou3LrJqUSCkihPLDhVN7uub0JCPXRwOK",
+  "jsonbin_access_key": "$2a$10$sd9iDBR6Z.lT1ny0gDVF6OcebSniLvjRfAL4VUC1Y1lsUVkTB/3L2",
+  "jsonbin_bin_id": "",
   "donation_goal_usd": 20,
-
   "contract_address": "",
   "token_symbol": "DOOM",
   "total_supply": "10,000,000,000",
-
   "twitter": "https://twitter.com/Doom28939",
   "telegram": "",
   "discord": "",
-
   "airdrop_amount": 10000,
-
   "hero_headline": "DOOM IS INEVITABLE.",
   "hero_subtext": "The villain meme coin of the Avengers Doomsday era. Forged on Solana. No utility. Pure power. Pure community.",
-
   "countdown_mode": "auto",
   "countdown_stopped_message": "Launch date will be announced soon. Stay tuned.",
-
   "show_how_to_buy": false,
   "show_dex_listings": false,
   "show_tokenomics": true,
   "show_airdrop": true,
   "show_roadmap": true,
-
   "raydium_link": "https://raydium.io/swap/",
   "jupiter_link": "https://jup.ag/",
   "dexscreener_link": "https://dexscreener.com",
