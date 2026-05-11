@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>$DOOM Admin Panel</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --g:#39ff14;--gd:#2bbf0f;--gg:rgba(57,255,20,0.4);--gf:rgba(57,255,20,0.12);
+  --bg:#000;--c1:#050805;--c2:#0a120a;--dim:#7fcc6b;
+  --danger:#ff3b3b;--warn:#ffaa00;--info:#3b9fff;
+}
+body{background:var(--bg);color:var(--g);font-family:'Rajdhani',system-ui,sans-serif;padding-bottom:80px;}
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap');
+
+/* TOP BAR */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(0,0,0,0.92);border-bottom:1px solid var(--g);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px);}
+.topbar-left{display:flex;flex-direction:column;}
+.topbar-title{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--g);text-shadow:0 0 10px var(--gg);}
+.topbar-sub{font-size:12px;color:var(--dim);margin-top:2px;}
+.topbar-right{display:flex;gap:10px;}
+.btn-preview{background:transparent;border:1px solid var(--g);color:var(--g);padding:10px 18px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;border-radius:4px;cursor:pointer;transition:all 0.2s;}
+.btn-preview:hover{background:var(--gf);}
+.btn-save{background:var(--g);color:#000;border:none;padding:10px 22px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;border-radius:4px;cursor:pointer;letter-spacing:0.06em;transition:all 0.2s;box-shadow:0 0 16px var(--gg);}
+.btn-save:hover{background:var(--gd);}
+
+/* LAYOUT */
+.wrap{max-width:900px;margin:0 auto;padding:28px 20px;}
+
+/* CARDS */
+.card{background:var(--c1);border:1px solid var(--gf);border-radius:8px;margin-bottom:20px;overflow:hidden;}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--gf);display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;}
+.card-icon{width:30px;height:30px;background:var(--gf);border:1px solid var(--g);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.card-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--g);}
+.card-desc{font-size:12px;color:var(--dim);margin-left:auto;}
+.card-arrow{color:var(--dim);font-size:12px;margin-left:8px;transition:transform 0.2s;}
+.card-arrow.open{transform:rotate(180deg);}
+.card-body{padding:20px;display:none;}
+.card-body.open{display:block;}
+
+/* FIELDS */
+.field{margin-bottom:16px;}
+.field:last-child{margin-bottom:0;}
+.field-label{display:block;font-size:12px;font-weight:700;color:var(--dim);margin-bottom:5px;letter-spacing:0.06em;text-transform:uppercase;}
+.field-hint{display:block;font-size:11px;color:rgba(127,204,107,0.45);margin-bottom:6px;line-height:1.5;}
+.field input,.field textarea,.field select{
+  width:100%;background:var(--bg);border:1px solid var(--gf);color:var(--g);
+  padding:10px 12px;font-family:'Rajdhani',monospace;font-size:14px;
+  border-radius:4px;outline:none;transition:all 0.2s;
+}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--g);box-shadow:0 0 10px var(--gf);}
+.field input::placeholder,.field textarea::placeholder{color:rgba(127,204,107,0.3);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:560px){.field-row{grid-template-columns:1fr;}}
+
+/* API KEY */
+.api-wrap{position:relative;}
+.api-wrap input{padding-right:80px;font-family:'Courier New',monospace;font-size:12px;}
+.btn-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--gf);border:1px solid var(--gf);color:var(--g);padding:3px 10px;border-radius:3px;font-size:10px;cursor:pointer;font-family:'Orbitron',sans-serif;}
+
+/* TOGGLE SWITCHES */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--gf);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-info{flex:1;}
+.toggle-name{font-size:14px;font-weight:600;color:var(--g);}
+.toggle-desc{font-size:12px;color:var(--dim);margin-top:2px;}
+.switch{position:relative;width:48px;height:26px;flex-shrink:0;margin-left:16px;}
+.switch input{opacity:0;width:0;height:0;position:absolute;}
+.slider{position:absolute;inset:0;background:var(--c2);border:1px solid var(--gf);border-radius:26px;cursor:pointer;transition:all 0.25s;}
+.slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:var(--dim);border-radius:50%;transition:all 0.25s;}
+input:checked+.slider{background:var(--gf);border-color:var(--g);box-shadow:0 0 10px var(--gg);}
+input:checked+.slider::before{background:var(--g);transform:translateX(22px);}
+
+/* COUNTDOWN MODE */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;}
+@media(max-width:560px){.mode-grid{grid-template-columns:1fr;}}
+.mode-card{
+  border:1px solid var(--gf);border-radius:6px;padding:14px;cursor:pointer;
+  transition:all 0.2s;text-align:center;position:relative;
+}
+.mode-card:hover{border-color:var(--g);background:var(--gf);}
+.mode-card.active{border-color:var(--g);background:var(--gf);box-shadow:0 0 14px var(--gf);}
+.mode-card input[type=radio]{position:absolute;opacity:0;width:0;height:0;}
+.mode-icon{font-size:22px;margin-bottom:6px;}
+.mode-label{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--g);}
+.mode-sub{font-size:11px;color:var(--dim);margin-top:4px;line-height:1.4;}
+.mode-card.active .mode-label{text-shadow:0 0 8px var(--gg);}
+
+/* STATUS INDICATOR */
+.status-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.status-pill{padding:4px 12px;border-radius:20px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.06em;}
+.pill-ok{background:rgba(57,255,20,0.15);border:1px solid var(--g);color:var(--g);}
+.pill-warn{background:rgba(255,170,0,0.15);border:1px solid var(--warn);color:var(--warn);}
+.pill-err{background:rgba(255,59,59,0.15);border:1px solid var(--danger);color:var(--danger);}
+
+/* WARN BOX */
+.warn-box{background:rgba(255,170,0,0.07);border:1px solid rgba(255,170,0,0.35);border-radius:6px;padding:12px 14px;font-size:12px;color:#ffcc66;margin-bottom:20px;line-height:1.6;}
+.warn-box strong{color:var(--warn);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--g);color:#000;padding:12px 22px;border-radius:6px;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;box-shadow:0 0 28px var(--gg);transform:translateY(80px);opacity:0;transition:all 0.3s;z-index:999;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* DEPLOY STEPS */
+.deploy-steps{background:var(--c2);border-radius:6px;padding:16px;margin-top:20px;}
+.deploy-title{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--dim);margin-bottom:12px;letter-spacing:0.1em;text-transform:uppercase;}
+.deploy-step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;}
+.deploy-step:last-child{margin-bottom:0;}
+.dn{min-width:22px;height:22px;background:var(--g);color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;flex-shrink:0;margin-top:1px;}
+.dt{font-size:13px;color:var(--dim);line-height:1.5;}
+.dt strong{color:var(--g);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-title">$DOOM Admin Panel</div>
+    <div class="topbar-sub">Edit → Save config.json → Re-upload to Cloudflare Pages</div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn-preview" onclick="window.open('index.html','_blank')">Preview Site ↗</button>
+    <button class="btn-save" id="btn-save">⬇ Save config.json</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- STATUS -->
+  <div class="status-bar" id="status-bar">
+    <span class="status-pill pill-warn" id="pill-contract">⚠ No Contract Yet</span>
+    <span class="status-pill pill-warn" id="pill-apikey">⚠ API Key Not Set</span>
+    <span class="status-pill pill-warn" id="pill-telegram">⚠ No Telegram</span>
+  </div>
+
+  <div class="warn-box">
+    <strong>How this works:</strong> Edit fields → click <strong>Save config.json</strong> → your browser downloads the file → replace the old one in your site folder → re-upload folder to Cloudflare Pages. Takes under 30 seconds.
+  </div>
+
+  <!-- SECTION 1: API & WALLET -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <div class="card-icon">🔑</div>
+      <div class="card-title">API & Donation Wallet</div>
+      <div class="card-desc">Solscan + SOL wallet</div>
+      <span class="card-arrow open">▼</span>
+    </div>
+    <div class="card-body open">
+      <div class="field">
+        <label class="field-label">Solscan API Key</label>
+        <span class="field-hint">Kept in this file only. Never sent to any server. Used to read your donation wallet balance.</span>
+        <div class="api-wrap">
+          <input type="password" id="solscan_api_key" placeholder="Paste your Solscan V2 API key" autocomplete="off"/>
+          <button class="btn-toggle" id="btn-toggle-key">Show</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Donation Wallet Address (Solana)</label>
+        <input type="text" id="donation_wallet" placeholder="Your Solana wallet address"/>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Donation Goal (USD)</label>
+          <input type="number" id="donation_goal_usd" placeholder="20" min="1"/>
+        </div>
+        <div class="field">
+          <label class="field-label">Airdrop per Wallet ($DOOM)</label>
+          <input type="number" id="airdrop_amount" placeholder="10000" min="1"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: TOKEN -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <div class="card-icon">🪙</div>
+      <div class="card-title">Token Details</div>
+      <div class="card-desc">Fill after deployment</div>
+      <span class="card-arrow">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <label class="field-label">Contract Address</label>
+        <span class="field-hint">Leave empty until token is deployed. "How to Buy" and DEX sections will stay hidden until you set this AND enable them below.</span>
+        <input type="text" id="contract_address" placeholder="Leave empty until deployed"/>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Token Symbol</label>
+          <input type="text" id="token_symbol" placeholder="DOOM"/>
+        </div>
+        <div class="field">
+          <label class="field-label">Total Supply</label>
+          <input type="text" id="total_supply" placeholder="10,000,000,000"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: COUNTDOWN -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <div class="card-icon">⏱</div>
+      <div class="card-title">Countdown Control</div>
+      <div class="card-desc">Auto / Force / Stop</div>
+      <span class="card-arrow">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <label class="field-label">Countdown Mode</label>
+        <span class="field-hint">Choose how the launch countdown behaves on the site.</span>
+      </div>
+      <div class="mode-grid">
+        <label class="mode-card active" id="mode-auto-card">
+          <input type="radio" name="countdown_mode" value="auto" checked/>
+          <div class="mode-icon">🤖</div>
+          <div class="mode-label">Auto</div>
+          <div class="mode-sub">Starts automatically when donation goal is reached</div>
+        </label>
+        <label class="mode-card" id="mode-start-card">
+          <input type="radio" name="countdown_mode" value="start"/>
+          <div class="mode-icon">▶</div>
+          <div class="mode-label">Force Start</div>
+          <div class="mode-sub">Start countdown right now regardless of donations</div>
+        </label>
+        <label class="mode-card" id="mode-stop-card">
+          <input type="radio" name="countdown_mode" value="stop"/>
+          <div class="mode-icon">⏹</div>
+          <div class="mode-label">Stopped</div>
+          <div class="mode-sub">Hide countdown, show custom message instead</div>
+        </label>
+      </div>
+      <div class="field" id="stop-msg-field" style="display:none;">
+        <label class="field-label">Stopped Message</label>
+        <span class="field-hint">Shown in place of the countdown when mode is Stopped.</span>
+        <input type="text" id="countdown_stopped_message" placeholder="Launch date will be announced soon. Stay tuned."/>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: SECTION VISIBILITY -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <div class="card-icon">👁</div>
+      <div class="card-title">Section Visibility</div>
+      <div class="card-desc">Show or hide site sections</div>
+      <span class="card-arrow">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-name">Tokenomics</div>
+          <div class="toggle-desc">Total supply donut chart section</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="show_tokenomics"/><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-name">Airdrop Registration</div>
+          <div class="toggle-desc">Wallet submission form</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="show_airdrop"/><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-name">How to Buy</div>
+          <div class="toggle-desc">4-step buying guide — hide until token is live</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="show_how_to_buy"/><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-name">DEX & Tracker Listings</div>
+          <div class="toggle-desc">Raydium, Jupiter, DexScreener etc — hide until token is live</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="show_dex_listings"/><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-name">Roadmap</div>
+          <div class="toggle-desc">4-phase launch roadmap</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="show_roadmap"/><span class="slider"></span></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: SOCIALS -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <div class="card-icon">🔗</div>
+      <div class="card-title">Social Links</div>
+      <div class="card-desc">Leave empty to hide</div>
+      <span class="card-arrow">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <label class="field-label">Twitter / X URL</label>
+        <input type="text" id="twitter" placeholder="https://twitter.com/Doom28939"/>
+      </div>
+      <div class="field">
+        <label class="field-label">Telegram URL</label>
+        <input type="text" id="telegram" placeholder="https://t.me/yourchannel"/>
+      </div>
+      <div class="field">
+        <label class="field-label">Discord URL</label>
+        <input type="text" id="discord" placeholder="https://discord.gg/yourserver"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: DEX LINKS -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <div class="card-icon">📡</div>
+      <div class="card-title">DEX & Tracker Links</div>
+      <div class="card-desc">Update after deployment</div>
+      <span class="card-arrow">▼</span>
+    </div>
+    <div class="card-body">
+      <span class="field-hint" style="display:block;margin-bottom:14px;font-size:12px;color:rgba(127,204,107,0.5);">After token deployment, paste the full swap URLs with your contract address. The site will use these links.</span>
+      <div class="field">
+        <label class="field-label">Raydium Swap Link</label>
+        <input type="text" id="raydium_link" placeholder="https://raydium.io/swap/?outputCurrency=YOUR_CONTRACT"/>
+      </div>
+      <div class="field">
+        <label class="field-label">Jupiter Swap Link</label>
+        <input type="text" id="jupiter_link" placeholder="https://jup.ag/swap/SOL-YOUR_CONTRACT"/>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">DexScreener Link</label>
+          <input type="text" id="dexscreener_link" placeholder="https://dexscreener.com/solana/YOUR_CONTRACT"/>
+        </div>
+        <div class="field">
+          <label class="field-label">Birdeye Link</label>
+          <input type="text" id="birdeye_link" placeholder="https://birdeye.so/token/YOUR_CONTRACT"/>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Solscan Token Link</label>
+        <input type="text" id="solscan_link" placeholder="https://solscan.io/token/YOUR_CONTRACT"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: CONTENT -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <div class="card-icon">✏️</div>
+      <div class="card-title">Hero Text</div>
+      <div class="card-desc">Headline & subtext</div>
+      <span class="card-arrow">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <label class="field-label">Hero Headline</label>
+        <input type="text" id="hero_headline" placeholder="DOOM IS INEVITABLE."/>
+      </div>
+      <div class="field">
+        <label class="field-label">Hero Subtext</label>
+        <textarea id="hero_subtext" rows="3" style="resize:vertical;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEPLOY STEPS -->
+  <div class="deploy-steps">
+    <div class="deploy-title">How to deploy after saving</div>
+    <div class="deploy-step"><div class="dn">1</div><div class="dt">Click <strong>Save config.json</strong> — file downloads to your computer</div></div>
+    <div class="deploy-step"><div class="dn">2</div><div class="dt">Replace the old <strong>config.json</strong> in your doom-site folder</div></div>
+    <div class="deploy-step"><div class="dn">3</div><div class="dt">Go to <strong>Cloudflare Pages</strong> → your project → Create new deployment</div></div>
+    <div class="deploy-step"><div class="dn">4</div><div class="dt">Upload the <strong>entire doom-site folder</strong> → wait 15 seconds → live</div></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">✓ config.json downloaded!</div>
+
+<script>
+const FIELDS = ['solscan_api_key','donation_wallet','donation_goal_usd','airdrop_amount',
+  'contract_address','token_symbol','total_supply','countdown_stopped_message',
+  'twitter','telegram','discord','raydium_link','jupiter_link','dexscreener_link',
+  'birdeye_link','solscan_link','hero_headline','hero_subtext'];
+
+const TOGGLES = ['show_tokenomics','show_airdrop','show_how_to_buy','show_dex_listings','show_roadmap'];
+
+// Card collapse
+function toggleCard(header){
+  const body = header.nextElementSibling;
+  const arrow = header.querySelector('.card-arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+// API key visibility
+document.getElementById('btn-toggle-key').addEventListener('click',function(){
+  const inp = document.getElementById('solscan_api_key');
+  if(inp.type==='password'){inp.type='text';this.textContent='Hide';}
+  else{inp.type='password';this.textContent='Show';}
+});
+
+// Countdown mode cards
+document.querySelectorAll('input[name="countdown_mode"]').forEach(radio=>{
+  radio.addEventListener('change',function(){
+    document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('active'));
+    this.closest('.mode-card').classList.add('active');
+    document.getElementById('stop-msg-field').style.display = this.value==='stop' ? 'block' : 'none';
+  });
+});
+
+// Status pills update
+function updateStatus(){
+  const ca = (document.getElementById('contract_address').value||'').trim();
+  const ak = (document.getElementById('solscan_api_key').value||'').trim();
+  const tg = (document.getElementById('telegram').value||'').trim();
+
+  const pillCA = document.getElementById('pill-contract');
+  const pillAK = document.getElementById('pill-apikey');
+  const pillTG = document.getElementById('pill-telegram');
+
+  if(ca){ pillCA.textContent='✓ Contract Set'; pillCA.className='status-pill pill-ok'; }
+  else { pillCA.textContent='⚠ No Contract Yet'; pillCA.className='status-pill pill-warn'; }
+
+  if(ak && ak!=='PASTE_YOUR_SOLSCAN_API_KEY_HERE'){ pillAK.textContent='✓ API Key Set'; pillAK.className='status-pill pill-ok'; }
+  else { pillAK.textContent='⚠ API Key Not Set'; pillAK.className='status-pill pill-warn'; }
+
+  if(tg){ pillTG.textContent='✓ Telegram Set'; pillTG.className='status-pill pill-ok'; }
+  else { pillTG.textContent='⚠ No Telegram'; pillTG.className='status-pill pill-warn'; }
+}
+
+['contract_address','solscan_api_key','telegram'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',updateStatus);
+});
+
+// Load config
+async function loadConfig(){
+  try{
+    const r = await fetch('config.json?t='+Date.now());
+    const cfg = await r.json();
+
+    FIELDS.forEach(key=>{
+      const el = document.getElementById(key);
+      if(el && cfg[key]!==undefined) el.value = cfg[key];
+    });
+
+    TOGGLES.forEach(key=>{
+      const el = document.getElementById(key);
+      if(el) el.checked = !!cfg[key];
+    });
+
+    // Countdown mode
+    const mode = cfg.countdown_mode || 'auto';
+    const radio = document.querySelector(`input[name="countdown_mode"][value="${mode}"]`);
+    if(radio){
+      radio.checked = true;
+      document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('active'));
+      radio.closest('.mode-card').classList.add('active');
+      if(mode==='stop') document.getElementById('stop-msg-field').style.display='block';
+    }
+
+    updateStatus();
+  }catch(e){
+    console.warn('Could not load config.json');
+  }
+}
+
+// Save config
+document.getElementById('btn-save').addEventListener('click',()=>{
+  const cfg = {};
+
+  FIELDS.forEach(key=>{
+    const el = document.getElementById(key);
+    if(!el) return;
+    const v = el.value.trim();
+    if(key==='donation_goal_usd'||key==='airdrop_amount') cfg[key]=Number(v)||0;
+    else cfg[key]=v;
+  });
+
+  TOGGLES.forEach(key=>{
+    const el = document.getElementById(key);
+    cfg[key] = el ? el.checked : false;
+  });
+
+  cfg.countdown_mode = document.querySelector('input[name="countdown_mode"]:checked')?.value || 'auto';
+  cfg.token_network = 'Solana';
+
+  const json = JSON.stringify(cfg, null, 2);
+  const blob = new Blob([json],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='config.json'; a.click();
+  URL.revokeObjectURL(url);
+
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'),3000);
+});
+
+loadConfig();
+</script>
+</body>
+</html>
