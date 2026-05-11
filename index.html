@@ -515,23 +515,55 @@ function applyConfig(){
   animateDonut();
 }
 
-// ============ SOL PRICE ============
+// ============ SOL PRICE — multiple fallbacks ============
 async function fetchSolUsd(){
+  // Try CoinGecko first
   try{
-    const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+    const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd',{cache:'no-store'});
     const d=await r.json();
-    solUsd=d?.solana?.usd||0;
-  }catch(e){solUsd=0;}
+    if(d?.solana?.usd){ solUsd=d.solana.usd; return; }
+  }catch(e){}
+  // Fallback: CoinGecko public proxy
+  try{
+    const r=await fetch('https://price.jup.ag/v6/price?ids=SOL',{cache:'no-store'});
+    const d=await r.json();
+    if(d?.data?.SOL?.price){ solUsd=d.data.SOL.price; return; }
+  }catch(e){}
+  solUsd=0;
 }
 
-// ============ SOLSCAN BALANCE ============
+// ============ WALLET BALANCE — public Solana RPC (no API key, no CORS) ============
+// Uses public mainnet RPC endpoints — free, open CORS, no key needed
+const RPC_ENDPOINTS=[
+  'https://api.mainnet-beta.solana.com',
+  'https://solana-api.projectserum.com',
+  'https://rpc.ankr.com/solana'
+];
+
+async function getSolBalance(wallet){
+  for(const rpc of RPC_ENDPOINTS){
+    try{
+      const r=await fetch(rpc,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({jsonrpc:'2.0',id:1,method:'getBalance',params:[wallet]}),
+        signal:AbortSignal.timeout(5000)
+      });
+      const d=await r.json();
+      if(d?.result?.value!==undefined){
+        return d.result.value/1e9; // lamports to SOL
+      }
+    }catch(e){ continue; }
+  }
+  throw new Error('All RPC endpoints failed');
+}
+
 async function fetchBalance(){
   const now=Date.now();
   const wallet=(CFG.donation_wallet||'').trim();
-  const apiKey=(CFG.solscan_api_key||'').trim();
   if(!wallet) return;
 
-  // Check cache
+  // Check cache first
   const ct=parseInt(localStorage.getItem(KEY_BAL_T)||'0');
   const cb=parseFloat(localStorage.getItem(KEY_BAL)||'-1');
   if(ct&&cb>=0&&(now-ct)<CACHE_DURATION){
@@ -540,28 +572,22 @@ async function fetchBalance(){
     return;
   }
 
-  if(!apiKey||apiKey==='PASTE_YOUR_SOLSCAN_API_KEY_HERE'){
-    document.getElementById('don-refresh').textContent='Add your Solscan API key in config.json to enable live tracking.';
-    updateBar(0);
-    return;
-  }
-
   try{
     document.getElementById('don-refresh').textContent='Fetching live balance…';
-    const r=await fetch(`https://pro-api.solscan.io/v2.0/account?address=${wallet}`,{headers:{'token':apiKey}});
-    const d=await r.json();
-    if(d.data&&d.data.lamports!==undefined){
-      const sol=d.data.lamports/1e9;
-      const usd=solUsd>0?sol*solUsd:0;
-      localStorage.setItem(KEY_BAL,usd.toString());
-      localStorage.setItem(KEY_BAL_T,now.toString());
-      updateBar(usd);
-      document.getElementById('don-refresh').textContent='Live · Just updated · Refreshes every 2 min';
-    } else {
-      document.getElementById('don-refresh').textContent='Could not read balance — check API key in admin.html';
-    }
+    const sol=await getSolBalance(wallet);
+    const usd=solUsd>0?sol*solUsd:0;
+    localStorage.setItem(KEY_BAL,usd.toString());
+    localStorage.setItem(KEY_BAL_T,now.toString());
+    updateBar(usd);
+    document.getElementById('don-refresh').textContent=`Live · ${sol.toFixed(4)} SOL · Just updated · Refreshes every 2 min`;
   }catch(e){
-    document.getElementById('don-refresh').textContent='Network error — retrying in 2 min';
+    // If all RPCs fail, use cached value if available
+    if(cb>=0){
+      updateBar(cb);
+      document.getElementById('don-refresh').textContent='Using cached balance — live update failed, retrying in 2 min';
+    } else {
+      document.getElementById('don-refresh').textContent='Could not fetch balance — retrying in 2 min';
+    }
   }
 }
 

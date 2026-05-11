@@ -130,7 +130,6 @@ input:checked+.slider::before{background:var(--g);transform:translateX(22px);}
   <!-- STATUS -->
   <div class="status-bar" id="status-bar">
     <span class="status-pill pill-warn" id="pill-contract">⚠ No Contract Yet</span>
-    <span class="status-pill pill-warn" id="pill-apikey">⚠ API Key Not Set</span>
     <span class="status-pill pill-warn" id="pill-telegram">⚠ No Telegram</span>
   </div>
 
@@ -147,14 +146,6 @@ input:checked+.slider::before{background:var(--g);transform:translateX(22px);}
       <span class="card-arrow open">▼</span>
     </div>
     <div class="card-body open">
-      <div class="field">
-        <label class="field-label">Solscan API Key</label>
-        <span class="field-hint">Kept in this file only. Never sent to any server. Used to read your donation wallet balance.</span>
-        <div class="api-wrap">
-          <input type="password" id="solscan_api_key" placeholder="Paste your Solscan V2 API key" autocomplete="off"/>
-          <button class="btn-toggle" id="btn-toggle-key">Show</button>
-        </div>
-      </div>
       <div class="field">
         <label class="field-label">Donation Wallet Address (Solana)</label>
         <input type="text" id="donation_wallet" placeholder="Your Solana wallet address"/>
@@ -380,7 +371,7 @@ input:checked+.slider::before{background:var(--g);transform:translateX(22px);}
 <div class="toast" id="toast">✓ config.json downloaded!</div>
 
 <script>
-const FIELDS = ['solscan_api_key','donation_wallet','donation_goal_usd','airdrop_amount',
+const FIELDS = ['donation_wallet','donation_goal_usd','airdrop_amount',
   'contract_address','token_symbol','total_supply','countdown_stopped_message',
   'twitter','telegram','discord','raydium_link','jupiter_link','dexscreener_link',
   'birdeye_link','solscan_link','hero_headline','hero_subtext'];
@@ -418,14 +409,10 @@ function updateStatus(){
   const tg = (document.getElementById('telegram').value||'').trim();
 
   const pillCA = document.getElementById('pill-contract');
-  const pillAK = document.getElementById('pill-apikey');
   const pillTG = document.getElementById('pill-telegram');
 
   if(ca){ pillCA.textContent='✓ Contract Set'; pillCA.className='status-pill pill-ok'; }
   else { pillCA.textContent='⚠ No Contract Yet'; pillCA.className='status-pill pill-warn'; }
-
-  if(ak && ak!=='PASTE_YOUR_SOLSCAN_API_KEY_HERE'){ pillAK.textContent='✓ API Key Set'; pillAK.className='status-pill pill-ok'; }
-  else { pillAK.textContent='⚠ API Key Not Set'; pillAK.className='status-pill pill-warn'; }
 
   if(tg){ pillTG.textContent='✓ Telegram Set'; pillTG.className='status-pill pill-ok'; }
   else { pillTG.textContent='⚠ No Telegram'; pillTG.className='status-pill pill-warn'; }

@@ -1,27 +1,32 @@
 {
-  "solscan_api_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3Nzg0OTUwNTU3NjcsImVtYWlsIjoiZG9vbWNyeXB0b3Rva2Vub2ZmaWNpYWxAZ21haWwuY29tIiwiYWN0aW9uIjoidG9rZW4tYXBpIiwiYXBpVmVyc2lvbiI6InYyIiwiaWF0IjoxNzc4NDk1MDU1fQ.y38m0aqf04zMvn77gPXUaloP7bZs3tJjpftCXuIaQVU",
   "donation_wallet": "Hrhun4a3ayjbLVgDYYSExLw3BU5Zb5vjXPZsoTZQHxi1",
   "donation_goal_usd": 20,
-  "airdrop_amount": 10000,
+
   "contract_address": "",
   "token_symbol": "DOOM",
   "total_supply": "10,000,000,000",
-  "countdown_stopped_message": "Launch date will be announced soon. Stay tuned.",
+
   "twitter": "https://twitter.com/Doom28939",
   "telegram": "",
   "discord": "",
+
+  "airdrop_amount": 10000,
+
+  "hero_headline": "DOOM IS INEVITABLE.",
+  "hero_subtext": "The villain meme coin of the Avengers Doomsday era. Forged on Solana. No utility. Pure power. Pure community.",
+
+  "countdown_mode": "auto",
+  "countdown_stopped_message": "Launch date will be announced soon. Stay tuned.",
+
+  "show_how_to_buy": false,
+  "show_dex_listings": false,
+  "show_tokenomics": true,
+  "show_airdrop": true,
+  "show_roadmap": true,
+
   "raydium_link": "https://raydium.io/swap/",
   "jupiter_link": "https://jup.ag/",
   "dexscreener_link": "https://dexscreener.com",
   "birdeye_link": "https://birdeye.so",
-  "solscan_link": "https://solscan.io",
-  "hero_headline": "DOOM IS INEVITABLE.",
-  "hero_subtext": "The villain meme coin of the Avengers Doomsday era. Forged on Solana. No utility. Pure power. Pure community.",
-  "show_tokenomics": true,
-  "show_airdrop": true,
-  "show_how_to_buy": false,
-  "show_dex_listings": false,
-  "show_roadmap": true,
-  "countdown_mode": "auto",
-  "token_network": "Solana"
+  "solscan_link": "https://solscan.io"
 }
